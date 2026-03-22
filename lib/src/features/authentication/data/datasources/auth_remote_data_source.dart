@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/error/exceptions.dart';
@@ -77,32 +78,44 @@ class AuthRemoteDataSource {
   /// Sign in with Google
   Future<UserModel> signInWithGoogle() async {
     try {
-      final googleProvider = GoogleAuthProvider();
-      final credential = await _auth.signInWithProvider(googleProvider);
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      if (credential.user == null) {
-        throw const AuthException(message: 'Google sign in failed');
+      if (googleUser == null) {
+        throw const AuthException(message: 'Google sign in cancelled');
       }
 
-      // Check if user exists in Firestore
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      final user = userCredential.user!;
+
       final doc = await _firestore
           .collection(AppConstants.usersCollection)
-          .doc(credential.user!.uid)
+          .doc(user.uid)
           .get();
 
       if (!doc.exists) {
-        final user = UserModel(
-          uid: credential.user!.uid,
-          email: credential.user!.email ?? '',
-          displayName: credential.user!.displayName,
-          photoUrl: credential.user!.photoURL,
+        final newUser = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName,
+          photoUrl: user.photoURL,
           createdAt: DateTime.now(),
         );
+
         await _firestore
             .collection(AppConstants.usersCollection)
             .doc(user.uid)
-            .set(user.toFirestore());
-        return user;
+            .set(newUser.toFirestore());
+
+        return newUser;
       }
 
       return UserModel.fromFirestore(doc);
