@@ -6,7 +6,7 @@ class ApiConstants {
 
   // Gemini AI
   static const String geminiApiKey = Env.geminiApiKey;
-  static const String geminiModel = 'gemini-2.5-pro';
+  static const String geminiModel = 'gemini-2.5-flash';
 
   // Timeouts
   static const Duration connectionTimeout = Duration(seconds: 30);

@@ -11,6 +11,7 @@ class AppConstants {
   static const String usersCollection = 'users';
   static const String mealsCollection = 'meals';
   static const String dailyLogsCollection = 'daily_logs';
+  static const String weightEntriesCollection = 'weight_entries';
 
   // AI Prompt
   static const String nutritionAnalysisPrompt = '''

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
@@ -36,6 +37,39 @@ final currentUserProvider = FutureProvider<UserEntity?>((ref) async {
     },
     loading: () => null,
     error: (_, _) => null,
+  );
+});
+
+/// Provides the current user's daily nutrition goals.
+/// Falls back to default values from AppConstants if no user is logged in.
+class UserGoals {
+  final double calories;
+  final double protein;
+  final double carbs;
+  final double fat;
+
+  const UserGoals({
+    this.calories = AppConstants.defaultCalorieGoal,
+    this.protein = AppConstants.defaultProteinGoal,
+    this.carbs = AppConstants.defaultCarbsGoal,
+    this.fat = AppConstants.defaultFatGoal,
+  });
+}
+
+final userGoalsProvider = Provider<UserGoals>((ref) {
+  final currentUser = ref.watch(currentUserProvider);
+  return currentUser.when(
+    data: (user) {
+      if (user == null) return const UserGoals();
+      return UserGoals(
+        calories: user.calorieGoal,
+        protein: user.proteinGoal,
+        carbs: user.carbsGoal,
+        fat: user.fatGoal,
+      );
+    },
+    loading: () => const UserGoals(),
+    error: (_, _) => const UserGoals(),
   );
 });
 
@@ -134,6 +168,44 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> signOut() async {
     await _repository.signOut();
     state = const AuthState();
+  }
+
+  Future<bool> updateUserGoals({
+    required double calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    final currentUser = ref.read(currentUserProvider).value;
+    if (currentUser == null) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'No user logged in',
+      );
+      return false;
+    }
+
+    final updatedUser = currentUser.copyWith(
+      calorieGoal: calories,
+      proteinGoal: protein,
+      carbsGoal: carbs,
+      fatGoal: fat,
+    );
+
+    final result = await _repository.updateUserProfile(updatedUser);
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false);
+        // Refresh the current user provider so goals propagate everywhere
+        ref.invalidate(currentUserProvider);
+        return true;
+      },
+    );
   }
 
   Future<bool> sendPasswordResetEmail(String email) async {
