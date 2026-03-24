@@ -13,6 +13,7 @@ dependencies:
   # Firebase
   firebase_core: any
   firebase_auth: any
+  google_sign_in: ^6.2.1
   cloud_firestore: any
   firebase_storage: any
 
@@ -52,6 +53,8 @@ dependencies:
   path_provider: any
   flutter_hooks: any
   hooks_riverpod: any
+  http: ^1.6.0
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +62,16 @@ dev_dependencies:
   flutter_lints: any
   riverpod_generator: any
   build_runner: any
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+
+  adaptive_icon_background: "#008446"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true

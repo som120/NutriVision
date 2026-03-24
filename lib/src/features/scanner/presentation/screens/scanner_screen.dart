@@ -8,8 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../../shared/widgets/nutrient_bar.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
 import '../../domain/entities/meal_entity.dart';
 import '../providers/scanner_provider.dart';
+import 'barcode_scanner_screen.dart';
 
 /// Food scanner screen for capturing & analyzing food images
 class ScannerScreen extends ConsumerStatefulWidget {
@@ -79,6 +81,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           : _CaptureView(
               onCamera: _captureImage,
               onGallery: _pickFromGallery,
+              onBarcode: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const BarcodeScannerScreen(),
+                  ),
+                );
+              },
               errorMessage: state.errorMessage,
             ),
     );
@@ -89,11 +99,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
 class _CaptureView extends StatelessWidget {
   final VoidCallback onCamera;
   final VoidCallback onGallery;
+  final VoidCallback onBarcode;
   final String? errorMessage;
 
   const _CaptureView({
     required this.onCamera,
     required this.onGallery,
+    required this.onBarcode,
     this.errorMessage,
   });
 
@@ -216,6 +228,83 @@ class _CaptureView extends StatelessWidget {
                   ),
                 ),
               ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+
+              // Divider with "or"
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.black.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'or',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.black.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 650.ms),
+
+              // Barcode scan button
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.accent.withValues(alpha: 0.15),
+                        AppColors.secondary.withValues(alpha: 0.15),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onBarcode,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 10,
+                        children: [
+                          Icon(
+                            Icons.qr_code_scanner_rounded,
+                            size: 24,
+                            color: AppColors.accent,
+                          ),
+                          Text(
+                            'Scan Barcode',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
             ],
           ),
         ),
@@ -287,6 +376,7 @@ class _ResultView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final state = ref.watch(scannerNotifierProvider);
+    final goals = ref.watch(userGoalsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -438,19 +528,19 @@ class _ResultView extends ConsumerWidget {
                 NutrientBar(
                   label: 'Protein',
                   current: meal.macronutrients.protein,
-                  goal: 50,
+                  goal: goals.protein,
                   color: AppColors.protein,
                 ),
                 NutrientBar(
                   label: 'Carbohydrates',
                   current: meal.macronutrients.carbohydrates,
-                  goal: 300,
+                  goal: goals.carbs,
                   color: AppColors.carbs,
                 ),
                 NutrientBar(
                   label: 'Fat',
                   current: meal.macronutrients.fat,
-                  goal: 65,
+                  goal: goals.fat,
                   color: AppColors.fat,
                 ),
                 NutrientBar(
