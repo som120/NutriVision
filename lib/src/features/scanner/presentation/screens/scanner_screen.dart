@@ -116,17 +116,17 @@ class _CaptureView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+          constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 20,
+            spacing: 18,
             children: [
               // Illustration
               Container(
-                width: 200,
-                height: 200,
+                width: 180,
+                height: 180,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -138,7 +138,7 @@ class _CaptureView extends StatelessWidget {
                 ),
                 child: Icon(
                   Icons.restaurant_rounded,
-                  size: 80,
+                  size: 70,
                   color: AppColors.primary.withValues(alpha: 0.6),
                 ),
               ).animate().fadeIn(duration: 600.ms).scale(delay: 200.ms),
@@ -189,7 +189,7 @@ class _CaptureView extends StatelessWidget {
                   ),
                 ),
 
-              const SizedBox(height: 20),
+
 
               // Camera button
               SizedBox(

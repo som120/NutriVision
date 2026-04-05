@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../shared/widgets/glass_card.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 
@@ -162,8 +163,10 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Dark Mode',
                       trailing: Switch(
                         value: isDark,
-                        onChanged: (_) {
-                          // TODO: Toggle theme
+                        onChanged: (isDark) {
+                          ref
+                              .read(themeModeProvider.notifier)
+                              .toggleTheme(isDark);
                         },
                         activeThumbColor: AppColors.primary,
                       ),
